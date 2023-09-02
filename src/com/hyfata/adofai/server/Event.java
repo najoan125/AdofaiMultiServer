@@ -87,12 +87,7 @@ public class Event {
                 }
             }
             else {
-                if (room.getPlayers().size() == 1) {
-                    AdofaiServer.rooms.remove(roomTitle);
-                }
-                else {
-                    room.removePlayer(clientId);
-                }
+                room.removePlayer(clientId);
             }
             AdofaiServer.players.remove(clientId);
         }
