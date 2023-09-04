@@ -34,7 +34,7 @@ public class RoomUtil {
     public void createRoom(JSONObject received) {
         JSONObject room = received.getJSONObject("createRoom");
 
-        String title = room.getString("title");
+        String title = room.getString("title").trim();
         if (rooms.containsKey(title)) {
             out.println(JsonMessageUtil.getStatusMessage("exist"));
             out.flush();
@@ -52,6 +52,34 @@ public class RoomUtil {
 
         System.out.println(clientId+"님이 "+title+" 방을 만듦");
         out.println(getRoomInfoMessage(createdRoom));
+        out.flush();
+    }
+
+    public void joinRoom(JSONObject received) {
+        JSONObject object = received.getJSONObject("joinRoom");
+        String title = object.getString("title");
+        String password = object.optString("password", null);
+
+        if (!rooms.containsKey(title)) {
+            out.println(JsonMessageUtil.getStatusMessage("!exist"));
+            out.flush();
+            return;
+        }
+        if (!rooms.get(title).getPassword().equals(password)) {
+            out.println(JsonMessageUtil.getStatusMessage("!password"));
+            out.flush();
+            return;
+        }
+
+        Room room = rooms.get(title);
+        room.addPlayer(clientId);
+        room.addSocketOutput(out);
+
+        rooms.put(title, room);
+        joinedRoomTitles.put(clientId,title);
+
+        System.out.println(clientId+"님이 "+title+" 방에 참가함");
+        out.println(getRoomInfoMessage(room));
         out.flush();
     }
 

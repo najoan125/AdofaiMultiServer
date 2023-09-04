@@ -41,6 +41,11 @@ public class Event {
         if (received.has("createRoom")) {
             roomUtil.createRoom(received);
         }
+
+        //{"joinRoom":{"title":"testTitle","password":"testPassword"}}
+        else if (received.has("joinRoom")) {
+            roomUtil.joinRoom(received);
+        }
     }
 
 
