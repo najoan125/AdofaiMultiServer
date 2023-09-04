@@ -1,5 +1,6 @@
 package com.hyfata.adofai.server;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class Room {
@@ -7,7 +8,9 @@ public class Room {
     private String title;
     private String password;
     private final ArrayList<String> players = new ArrayList<>();
+    private final ArrayList<PrintWriter> socketOutput = new ArrayList<>();
     private String ownerId;
+    private String customLevelName;
     private String customLevelUrl;
 
     public Room(String title, String password, String ownerId) {
@@ -62,6 +65,26 @@ public class Room {
 
     public void removePlayer(String clientId) {
         this.players.remove(clientId);
+    }
+
+    public ArrayList<PrintWriter> getSocketOutput() {
+        return socketOutput;
+    }
+
+    public void addSocketOutput(PrintWriter output) {
+        socketOutput.add(output);
+    }
+
+    public void removeSocketOutput(PrintWriter output){
+        socketOutput.remove(output);
+    }
+
+    public String getCustomLevelName() {
+        return customLevelName;
+    }
+
+    public void setCustomLevelName(String customLevelName) {
+        this.customLevelName = customLevelName;
     }
 
     public String getCustomLevelUrl() {

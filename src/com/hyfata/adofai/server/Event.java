@@ -1,10 +1,13 @@
 package com.hyfata.adofai.server;
 
+import com.hyfata.adofai.server.util.JsonMessageUtil;
+import com.hyfata.adofai.server.util.RoomUtil;
 import org.json.JSONObject;
 
 import java.io.PrintWriter;
 
 public class Event {
+    RoomUtil roomUtil;
     PrintWriter out;
     String clientId;
     public boolean shouldDisconnect = false;
@@ -14,8 +17,10 @@ public class Event {
 
     public void onConnect(String clientId) {
         this.clientId = clientId;
+        roomUtil = new RoomUtil(clientId, out);
+
         System.out.println("[" + this.clientId + " 연결됨]");
-        out.println(getStatusMessage("connected"));
+        out.println(JsonMessageUtil.getStatusMessage("connected"));
         out.flush();
     }
 
@@ -25,77 +30,22 @@ public class Event {
             return;
         }
         if ("left".equals(inputMsg)) {
-            leftFromRoom();
-            out.println(getStatusMessage("success"));
+            roomUtil.leftFromRoom();
+            out.println(JsonMessageUtil.getStatusMessage("success"));
             out.flush();
             return;
         }
         JSONObject received = new JSONObject(inputMsg);
+
         //{"createRoom":{"title":"testTitle","password":"testPassword"}}
         if (received.has("createRoom")) {
-            createRoom(received);
+            roomUtil.createRoom(received);
         }
     }
 
 
     public void onDisconnect() {
         System.out.println("[" + clientId + " 연결 종료]");
-        leftFromRoom();
-    }
-
-    //otherMethods
-    private String getStatusMessage(String message) {
-        JSONObject object = new JSONObject();
-        object.put("status",message);
-        return object.toString();
-    }
-
-    private void createRoom(JSONObject received) {
-        JSONObject room = received.getJSONObject("createRoom");
-
-        String title = room.getString("title");
-        String password = null;
-        if (room.has("password"))
-            password = room.getString("password");
-
-        Room createdRoom = new Room(title, password, clientId);
-
-        if (AdofaiServer.rooms.containsKey(title)) {
-            out.println(getStatusMessage("exist"));
-            out.flush();
-            return;
-        }
-        AdofaiServer.rooms.put(title, createdRoom);
-        AdofaiServer.joinedRoomTitles.put(clientId,title);
-        System.out.println(clientId+"님이 "+title+" 방을 만듦");
-        out.println(getStatusMessage("success"));
-        out.flush();
-    }
-
-    private void leftFromRoom() {
-        if (AdofaiServer.joinedRoomTitles.containsKey(clientId)) {
-            String roomTitle = AdofaiServer.joinedRoomTitles.get(clientId);
-            Room room = AdofaiServer.rooms.get(roomTitle);
-
-            if (room.getOwnerId().equals(clientId)){
-                if (room.getPlayers().isEmpty()) {
-                    AdofaiServer.rooms.remove(roomTitle);
-                }
-                else {
-                    room.setOwnerId(room.getPlayers().get(0));
-                    room.removePlayer(0);
-                    AdofaiServer.rooms.put(roomTitle, room);
-                }
-            }
-            else {
-                room.removePlayer(clientId);
-            }
-            System.out.println(clientId + "님이 "+roomTitle+"에서 퇴장함");
-            AdofaiServer.joinedRoomTitles.remove(clientId);
-        }
-    }
-
-    private void sendToRoomPlayers(Room room) {
-        out.println();
+        roomUtil.leftFromRoom();
     }
 }

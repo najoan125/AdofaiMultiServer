@@ -3,22 +3,18 @@ package com.hyfata.adofai.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
 
 public class AdofaiServer {
-    public static HashMap<String,Room> rooms = new HashMap<>(); //title, Room
-    public static HashMap<String,String> joinedRoomTitles = new HashMap<>(); //clientId, roomTitle
-
     public static void main(String[] args) {
         AdofaiServer adofaiServer = new AdofaiServer();
-        adofaiServer.start();
+        adofaiServer.start(8000);
     }
 
-    public void start() {
+    public void start(int port) {
         ServerSocket serverSocket = null;
         Socket socket;
         try {
-            serverSocket = new ServerSocket(8000);
+            serverSocket = new ServerSocket(port);
             while (true) {
                 System.out.println("[클라이언트 연결 대기 중]");
                 socket = serverSocket.accept();
