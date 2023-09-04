@@ -66,14 +66,15 @@ public class Event {
             return;
         }
         AdofaiServer.rooms.put(title, createdRoom);
-        AdofaiServer.players.put(clientId,title);
+        AdofaiServer.joinedRoomTitles.put(clientId,title);
+        System.out.println(clientId+"님이 "+title+" 방을 만듦");
         out.println(getStatusMessage("success"));
         out.flush();
     }
 
     private void leftFromRoom() {
-        if (AdofaiServer.players.containsKey(clientId)) {
-            String roomTitle = AdofaiServer.players.get(clientId);
+        if (AdofaiServer.joinedRoomTitles.containsKey(clientId)) {
+            String roomTitle = AdofaiServer.joinedRoomTitles.get(clientId);
             Room room = AdofaiServer.rooms.get(roomTitle);
 
             if (room.getOwnerId().equals(clientId)){
@@ -89,7 +90,12 @@ public class Event {
             else {
                 room.removePlayer(clientId);
             }
-            AdofaiServer.players.remove(clientId);
+            System.out.println(clientId + "님이 "+roomTitle+"에서 퇴장함");
+            AdofaiServer.joinedRoomTitles.remove(clientId);
         }
+    }
+
+    private void sendToRoomPlayers(Room room) {
+        out.println();
     }
 }

@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public class AdofaiServer {
     public static HashMap<String,Room> rooms = new HashMap<>(); //title, Room
-    public static HashMap<String,String> players = new HashMap<>(); //clientId, roomTitle
+    public static HashMap<String,String> joinedRoomTitles = new HashMap<>(); //clientId, roomTitle
 
     public static void main(String[] args) {
         AdofaiServer adofaiServer = new AdofaiServer();
