@@ -79,8 +79,7 @@ public class RoomUtil {
         joinedRoomTitles.put(clientId,title);
 
         System.out.println(clientId+"님이 "+title+" 방에 참가함");
-        out.println(getRoomInfoMessage(room));
-        out.flush();
+        sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
     public void leftFromRoom() {
