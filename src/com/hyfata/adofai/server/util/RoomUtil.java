@@ -45,7 +45,7 @@ public class RoomUtil {
             password = room.getString("password");
 
         Room createdRoom = new Room(title, password, clientId);
-        createdRoom.addSocketOutput(out);
+        createdRoom.putSocketOutput(clientId, out);
 
         rooms.put(title, createdRoom);
         joinedRoomTitles.put(clientId,title);
@@ -73,7 +73,7 @@ public class RoomUtil {
 
         Room room = rooms.get(title);
         room.addPlayer(clientId);
-        room.addSocketOutput(out);
+        room.putSocketOutput(clientId, out);
 
         rooms.put(title, room);
         joinedRoomTitles.put(clientId,title);
@@ -88,16 +88,18 @@ public class RoomUtil {
         }
         String roomTitle = joinedRoomTitles.get(clientId);
         Room room = rooms.get(roomTitle);
-        room.removeSocketOutput(out);
+        room.removeSocketOutput(clientId);
 
         if (room.getOwnerId().equals(clientId)){
             if (room.getPlayers().isEmpty()) {
                 rooms.remove(roomTitle);
-            } else {
-                room.setOwnerId(room.getPlayers().get(0));
-                room.removePlayer(0);
-                rooms.put(roomTitle, room);
+                joinedRoomTitles.remove(clientId);
+                System.out.println(clientId + "님이 "+roomTitle+"에서 퇴장함");
+                return;
             }
+            room.setOwnerId(room.getPlayers().get(0));
+            room.removePlayer(0);
+            rooms.put(roomTitle, room);
         } else {
             room.removePlayer(clientId);
         }
@@ -108,7 +110,11 @@ public class RoomUtil {
     }
 
     public void sendToRoomPlayers(Room room, String message) {
-        for (PrintWriter out : room.getSocketOutput()) {
+        PrintWriter preOut = room.getSocketOutput().get(room.getOwnerId());
+        preOut.println(message);
+        preOut.flush();
+        for (String player : room.getPlayers()) {
+            PrintWriter out = room.getSocketOutput().get(player);
             out.println(message);
             out.flush();
         }
