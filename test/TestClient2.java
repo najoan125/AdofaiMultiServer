@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class TestClient2 {
@@ -24,16 +25,16 @@ public class TestClient2 {
             sendThread.start();
 
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            while (in != null) {
+            while (true) {
                 String inputMsg = in.readLine();
-                if(("[" + name + "]님이 나가셨습니다").equals(inputMsg)) break;
+                if(inputMsg == null) break;
                 System.out.println("From:" + inputMsg);
             }
         } catch (IOException e) {
             System.out.println("[서버 접속끊김]");
         } finally {
             try {
-                socket.close();
+                Objects.requireNonNull(socket).close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
