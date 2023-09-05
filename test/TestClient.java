@@ -15,7 +15,7 @@ public class TestClient {
 
     public void start() {
         Socket socket = null;
-        BufferedReader in = null;
+        BufferedReader in;
         try {
             socket = new Socket("localhost", 8000);
             System.out.println("[서버와 연결되었습니다]");
@@ -44,7 +44,7 @@ public class TestClient {
 }
 
 class SendThread extends Thread {
-    Socket socket = null;
+    Socket socket;
     String name;
 
     Scanner scanner = new Scanner(System.in);

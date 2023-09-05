@@ -13,11 +13,20 @@ public class Room {
     private String ownerId;
     private String customLevelName;
     private String customLevelUrl;
+    private boolean playing = false;
 
     public Room(String title, String password, String ownerId) {
         this.title = title;
         this.password = password;
         this.ownerId = ownerId;
+    }
+
+    public boolean isPlaying() {
+        return playing;
+    }
+
+    public void setPlaying(boolean playing) {
+        this.playing = playing;
     }
 
     public String getOwnerId() {

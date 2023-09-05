@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="AdofaiServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/AdofaiServer_jar</output-path>
+    <root id="archive" name="AdofaiServer.jar">
+      <element id="module-output" name="AdofaiServer" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/JsonUtility-1.1.1.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>

@@ -17,18 +17,42 @@ public class RoomUtil {
         this.out = out;
     }
 
+    public String getAllRoomsInfoMessage() {
+        if (rooms.isEmpty()) {
+            return null;
+        }
+
+        JSONObject object = new JSONObject();
+        for (Room room : rooms.values()) {
+            object.put(room.getTitle(), getSimpleRoomInfoJson(room));
+        }
+
+        JSONObject result = new JSONObject();
+        result.put("rooms",object);
+        return result.toString();
+    }
+
     public String getRoomInfoMessage(Room room) {
         JSONObject result = new JSONObject();
+        result.put("roomInfo", getRoomInfoJson(room));
+        return result.toString();
+    }
 
+    private JSONObject getRoomInfoJson(Room room) {
         JSONObject object = new JSONObject();
         object.put("title", room.getTitle());
         object.put("players", room.getPlayers());
         object.put("owner", room.getOwnerId());
         object.put("customName", room.getCustomLevelName());
         object.put("customUrl", room.getCustomLevelUrl());
+        return object;
+    }
 
-        result.put("roomInfo", object);
-        return result.toString();
+    private JSONObject getSimpleRoomInfoJson(Room room) {
+        JSONObject result = new JSONObject();
+        result.put("players", room.getPlayers().size()+1);
+        result.put("playing",room.isPlaying());
+        return result;
     }
 
     public void createRoom(JSONObject received) {
