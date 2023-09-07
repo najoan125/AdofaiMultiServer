@@ -52,6 +52,7 @@ public class RoomUtil {
         JSONObject result = new JSONObject();
         result.put("players", room.getPlayers().size()+1);
         result.put("playing",room.isPlaying());
+        result.put("password", room.getPassword() != null);
         return result;
     }
 
