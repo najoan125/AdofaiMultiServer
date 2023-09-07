@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Room {
-    private String id;
     private String title;
     private String password;
     private final ArrayList<String> players = new ArrayList<>();
+    private final ArrayList<String> readyPlayers = new ArrayList<>();
     private final HashMap<String, PrintWriter> socketOutput = new HashMap<>();
     private String ownerId;
     private String customLevelName;
@@ -35,14 +35,6 @@ public class Room {
 
     public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getTitle() {
@@ -75,6 +67,18 @@ public class Room {
 
     public void removePlayer(String clientId) {
         this.players.remove(clientId);
+    }
+
+    public ArrayList<String> getReadyPlayers() {
+        return readyPlayers;
+    }
+
+    public void addReadyPlayer(String clientId) {
+        this.readyPlayers.add(clientId);
+    }
+
+    public void removeReadyPlayer(String clientId) {
+        this.readyPlayers.remove(clientId);
     }
 
     public HashMap<String, PrintWriter> getSocketOutput() {

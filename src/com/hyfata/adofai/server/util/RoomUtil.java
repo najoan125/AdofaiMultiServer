@@ -42,6 +42,7 @@ public class RoomUtil {
         JSONObject object = new JSONObject();
         object.put("title", room.getTitle());
         object.put("players", room.getPlayers());
+        object.put("readyPlayers", room.getReadyPlayers());
         object.put("owner", room.getOwnerId());
         object.put("customName", room.getCustomLevelName());
         object.put("customUrl", room.getCustomLevelUrl());
@@ -95,10 +96,6 @@ public class RoomUtil {
             out.println(JsonMessageUtil.getStatusMessage("!password"));
             out.flush();
             return;
-        } else if (!(room.getPassword() == null && password == null)) {
-            out.println(JsonMessageUtil.getStatusMessage("!password"));
-            out.flush();
-            return;
         }
 
         room.addPlayer(clientId);
@@ -108,6 +105,43 @@ public class RoomUtil {
         joinedRoomTitles.put(clientId,title);
 
         System.out.println(clientId+"님이 "+title+" 방에 참가함");
+        sendToRoomPlayers(room, getRoomInfoMessage(room));
+    }
+
+    public void ready() {
+        if (!joinedRoomTitles.containsKey(clientId)){
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = rooms.get(joinedRoomTitles.get(clientId));
+        if (room.getOwnerId().equals(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("already"));
+            out.flush();
+            return;
+        }
+        if (room.getReadyPlayers().contains(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("already"));
+            out.flush();
+            return;
+        }
+        room.addReadyPlayer(clientId);
+        sendToRoomPlayers(room, getRoomInfoMessage(room));
+    }
+
+    public void unReady() {
+        if (!joinedRoomTitles.containsKey(clientId)){
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = rooms.get(joinedRoomTitles.get(clientId));
+        if (!room.getReadyPlayers().contains(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("already"));
+            out.flush();
+            return;
+        }
+        room.removeReadyPlayer(clientId);
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
@@ -126,10 +160,17 @@ public class RoomUtil {
                 System.out.println(clientId + "님이 "+roomTitle+"에서 퇴장함");
                 return;
             }
+
             room.setOwnerId(room.getPlayers().get(0));
+            if (room.getReadyPlayers().contains(room.getPlayers().get(0))) {
+                room.removeReadyPlayer(room.getPlayers().get(0));
+            }
             room.removePlayer(0);
             rooms.put(roomTitle, room);
         } else {
+            if (room.getReadyPlayers().contains(clientId)){
+                room.removeReadyPlayer(clientId);
+            }
             room.removePlayer(clientId);
         }
 

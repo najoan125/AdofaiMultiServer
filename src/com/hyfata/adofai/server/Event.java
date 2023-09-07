@@ -41,15 +41,25 @@ public class Event {
                 out.flush();
                 return;
             }
+            case "ready": {
+                roomUtil.ready();
+                return;
+            }
+            case "unready": {
+                roomUtil.unReady();
+                return;
+            }
         }
         JSONObject received = new JSONObject(inputMsg);
 
         //{"createRoom":{"title":"testTitle","password":"testPassword"}}
+        //{"createRoom":{"title":"testTitle"}}
         if (received.has("createRoom")) {
             roomUtil.createRoom(received);
         }
 
         //{"joinRoom":{"title":"testTitle","password":"testPassword"}}
+        //{"joinRoom":{"title":"testTitle"}}
         else if (received.has("joinRoom")) {
             roomUtil.joinRoom(received);
         }
