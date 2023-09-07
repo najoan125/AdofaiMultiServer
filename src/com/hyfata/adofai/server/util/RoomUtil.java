@@ -19,7 +19,7 @@ public class RoomUtil {
 
     public String getAllRoomsInfoMessage() {
         if (rooms.isEmpty()) {
-            return null;
+            return JsonMessageUtil.getStatusMessage("!exist");
         }
 
         JSONObject object = new JSONObject();

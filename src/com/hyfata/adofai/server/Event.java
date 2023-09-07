@@ -35,6 +35,11 @@ public class Event {
             out.flush();
             return;
         }
+        if ("rooms".equals(inputMsg)) {
+            out.println(roomUtil.getAllRoomsInfoMessage());
+            out.flush();
+            return;
+        }
         JSONObject received = new JSONObject(inputMsg);
 
         //{"createRoom":{"title":"testTitle","password":"testPassword"}}
