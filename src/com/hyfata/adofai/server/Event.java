@@ -25,20 +25,22 @@ public class Event {
     }
 
     public void onReceive(String inputMsg) {
-        if ("quit".equals(inputMsg)) {
-            shouldDisconnect = true;
-            return;
-        }
-        if ("left".equals(inputMsg)) {
-            roomUtil.leftFromRoom();
-            out.println(JsonMessageUtil.getStatusMessage("success"));
-            out.flush();
-            return;
-        }
-        if ("rooms".equals(inputMsg)) {
-            out.println(roomUtil.getAllRoomsInfoMessage());
-            out.flush();
-            return;
+        switch (inputMsg) {
+            case "quit": {
+                shouldDisconnect = true;
+                return;
+            }
+            case "left": {
+                roomUtil.leftFromRoom();
+                out.println(JsonMessageUtil.getStatusMessage("success"));
+                out.flush();
+                return;
+            }
+            case "rooms": {
+                out.println(roomUtil.getAllRoomsInfoMessage());
+                out.flush();
+                return;
+            }
         }
         JSONObject received = new JSONObject(inputMsg);
 

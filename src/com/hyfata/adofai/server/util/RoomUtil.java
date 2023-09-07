@@ -84,18 +84,22 @@ public class RoomUtil {
         String title = object.getString("title");
         String password = object.optString("password", null);
 
+        Room room = rooms.get(title);
         if (!rooms.containsKey(title)) {
             out.println(JsonMessageUtil.getStatusMessage("!exist"));
             out.flush();
             return;
         }
-        if (!rooms.get(title).getPassword().equals(password)) {
+        if (room.getPassword() != null && !room.getPassword().equals(password)) {
+            out.println(JsonMessageUtil.getStatusMessage("!password"));
+            out.flush();
+            return;
+        } else if (!(room.getPassword() == null && password == null)) {
             out.println(JsonMessageUtil.getStatusMessage("!password"));
             out.flush();
             return;
         }
 
-        Room room = rooms.get(title);
         room.addPlayer(clientId);
         room.putSocketOutput(clientId, out);
 
