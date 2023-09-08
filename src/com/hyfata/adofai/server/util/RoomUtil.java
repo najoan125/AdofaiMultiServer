@@ -5,6 +5,7 @@ import org.json.JSONObject;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Objects;
 
 public class RoomUtil {
     private static final HashMap<String,Room> rooms = new HashMap<>(); //title, Room
@@ -66,9 +67,7 @@ public class RoomUtil {
             out.flush();
             return;
         }
-        String password = null;
-        if (room.has("password"))
-            password = room.getString("password");
+        String password = room.optString("password", null);
 
         Room createdRoom = new Room(title, password, clientId);
         createdRoom.putSocketOutput(clientId, out);
@@ -86,12 +85,12 @@ public class RoomUtil {
         String title = object.getString("title");
         String password = object.optString("password", null);
 
-        Room room = rooms.get(title);
         if (!rooms.containsKey(title)) {
             out.println(JsonMessageUtil.getStatusMessage("!exist"));
             out.flush();
             return;
         }
+        Room room = rooms.get(title);
         if (room.getPassword() != null && !room.getPassword().equals(password)) {
             out.println(JsonMessageUtil.getStatusMessage("!password"));
             out.flush();
@@ -109,18 +108,19 @@ public class RoomUtil {
     }
 
     public void ready() {
-        if (!joinedRoomTitles.containsKey(clientId)){
+        if (!isPlayerJoined(clientId)){
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
         }
-        Room room = rooms.get(joinedRoomTitles.get(clientId));
-        if (room.getOwnerId().equals(clientId)) {
+
+        Room room = getPlayerRoom(clientId);
+        if (isOwner(room, clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("already"));
             out.flush();
             return;
         }
-        if (room.getReadyPlayers().contains(clientId)) {
+        if (isPlayerReady(room, clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("already"));
             out.flush();
             return;
@@ -130,13 +130,13 @@ public class RoomUtil {
     }
 
     public void unReady() {
-        if (!joinedRoomTitles.containsKey(clientId)){
+        if (!isPlayerJoined(clientId)){
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
         }
-        Room room = rooms.get(joinedRoomTitles.get(clientId));
-        if (!room.getReadyPlayers().contains(clientId)) {
+        Room room = getPlayerRoom(clientId);
+        if (!isPlayerReady(room, clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("already"));
             out.flush();
             return;
@@ -146,37 +146,100 @@ public class RoomUtil {
     }
 
     public void leftFromRoom() {
-        if (!joinedRoomTitles.containsKey(clientId)) {
+        if (!isPlayerJoined(clientId)) {
             return;
         }
-        String roomTitle = joinedRoomTitles.get(clientId);
-        Room room = rooms.get(roomTitle);
-        room.removeSocketOutput(clientId);
+        Room room = getPlayerRoom(clientId);
 
-        if (room.getOwnerId().equals(clientId)){
+        if (isOwner(room, clientId)){
             if (room.getPlayers().isEmpty()) {
-                rooms.remove(roomTitle);
+                rooms.remove(room.getTitle());
                 joinedRoomTitles.remove(clientId);
-                System.out.println(clientId + "님이 "+roomTitle+"에서 퇴장함");
+                System.out.println(clientId + "님이 "+room.getTitle()+"에서 퇴장함");
                 return;
             }
-
-            room.setOwnerId(room.getPlayers().get(0));
-            if (room.getReadyPlayers().contains(room.getPlayers().get(0))) {
-                room.removeReadyPlayer(room.getPlayers().get(0));
-            }
-            room.removePlayer(0);
-            rooms.put(roomTitle, room);
+            room = removeOwner(room, clientId);
         } else {
-            if (room.getReadyPlayers().contains(clientId)){
-                room.removeReadyPlayer(clientId);
-            }
-            room.removePlayer(clientId);
+            room = removePlayer(room, clientId);
         }
 
-        System.out.println(clientId + "님이 "+roomTitle+"에서 퇴장함");
+        System.out.println(clientId + "님이 "+ Objects.requireNonNull(room).getTitle()+"에서 퇴장함");
         sendToRoomPlayers(room, getRoomInfoMessage(room));
+    }
+
+    public void kick(String clientId) {
+        Room room = getPlayerRoom(this.clientId);
+        if (!isOwner(room, this.clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        if (!isPlayerJoined(room,clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("already"));
+            out.flush();
+            return;
+        }
+        sendToRoomPlayer(room, clientId, JsonMessageUtil.getStatusMessage("kick"));
+        room = removePlayer(room, clientId);
+        sendToRoomPlayers(Objects.requireNonNull(room), getRoomInfoMessage(room));
+    }
+
+    private boolean isOwner(Room room, String clientId) {
+        return room.getOwnerId().equals(clientId);
+    }
+
+    private boolean isPlayerJoined(Room room, String clientId) {
+        return room.getPlayers().contains(clientId);
+    }
+
+    private boolean isPlayerJoined(String clientId) {
+        return joinedRoomTitles.containsKey(clientId);
+    }
+
+    private boolean isPlayerReady(Room room, String clientId) {
+        return room.getReadyPlayers().contains(clientId);
+    }
+
+    private Room getPlayerRoom(String clientId) {
+        return rooms.get(joinedRoomTitles.get(clientId));
+    }
+
+    private Room removePlayer(Room room, String clientId) {
+        if (!isPlayerJoined(room, clientId)) return null;
+
+        room.removeSocketOutput(clientId);
+        room.removePlayer(clientId);
+        if (isPlayerReady(room, clientId)) {
+            room.removeReadyPlayer(clientId);
+        }
+
+        rooms.put(room.getTitle(), room);
         joinedRoomTitles.remove(clientId);
+
+        return room;
+    }
+
+    private Room removeOwner(Room room, String clientId) {
+        if (!isOwner(room, clientId)) return null;
+
+        room.removeSocketOutput(clientId);
+        room = setOwner(room, room.getPlayers().get(0));
+        joinedRoomTitles.remove(clientId);
+
+        return room;
+    }
+
+    private Room setOwner(Room room, String clientId) {
+        if (!isPlayerJoined(room, clientId)) return null;
+
+        room.setOwnerId(clientId);
+        if (isPlayerReady(room, clientId)) {
+            room.removeReadyPlayer(clientId);
+        }
+        room.removePlayer(clientId);
+
+        rooms.put(room.getTitle(), room);
+        return room;
     }
 
     public void sendToRoomPlayers(Room room, String message) {
@@ -188,5 +251,11 @@ public class RoomUtil {
             out.println(message);
             out.flush();
         }
+    }
+
+    public void sendToRoomPlayer(Room room, String clientId, String message) {
+        PrintWriter out = room.getSocketOutput().get(clientId);
+        out.println(message);
+        out.flush();
     }
 }
