@@ -145,6 +145,30 @@ public class RoomUtil {
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
+    public void changeOwner(String clientId) {
+        if (!isPlayerJoined(this.clientId) || !isPlayerJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = getPlayerRoom(this.clientId);
+        if (!isOwner(room, this.clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        room.addPlayer(room.getOwnerId());
+        room = setOwner(room, clientId);
+
+        if (room == null) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+        }
+        else {
+            sendToRoomPlayers(room, getRoomInfoMessage(room));
+        }
+    }
+
     public void leftFromRoom() {
         if (!isPlayerJoined(clientId)) {
             return;
@@ -200,7 +224,7 @@ public class RoomUtil {
         return room.getReadyPlayers().contains(clientId);
     }
 
-    private Room getPlayerRoom(String clientId) {
+    public Room getPlayerRoom(String clientId) {
         return rooms.get(joinedRoomTitles.get(clientId));
     }
 
@@ -229,7 +253,7 @@ public class RoomUtil {
         return room;
     }
 
-    private Room setOwner(Room room, String clientId) {
+    public Room setOwner(Room room, String clientId) {
         if (!isPlayerJoined(room, clientId)) return null;
 
         room.setOwnerId(clientId);

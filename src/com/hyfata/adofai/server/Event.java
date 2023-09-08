@@ -26,9 +26,9 @@ public class Event {
 
     // roomInfo:{owner, players, title, readyPlayers}
 
-    // status: !exist{rooms, joinRoom}, success{left}, already{ready, unready, kick}, error{ready, unready, kick}, kick{none}, connected{none}
+    // status: !exist{rooms, joinRoom}, success{left}, already{ready, unready, kick}, error{ready, unready, kick, setOwner}, kick{none}, connected{none}
     // rooms{rooms}
-    // roomInfo{ready, unready, createRoom, joinRoom, kick, none}
+    // roomInfo{ready, unready, createRoom, joinRoom, kick, setOwner, none}
     public void onReceive(String inputMsg) {
         switch (inputMsg) {
             case "quit": {
@@ -84,6 +84,14 @@ public class Event {
         else if (received.has("kick")) {
             roomUtil.kick(received.getString("kick"));
             // status: error, already, kick(kicked player)
+            // roomInfo
+        }
+
+        //{"setOwner":"test2"}
+        else if (received.has("setOwner")) {
+            String clientId = received.getString("setOwner");
+            roomUtil.changeOwner(clientId);
+            // status: error
             // roomInfo
         }
     }
