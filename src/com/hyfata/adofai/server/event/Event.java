@@ -1,4 +1,4 @@
-package com.hyfata.adofai.server;
+package com.hyfata.adofai.server.event;
 
 import com.hyfata.adofai.server.util.JsonMessageUtil;
 import com.hyfata.adofai.server.util.RoomUtil;
@@ -11,7 +11,7 @@ public class Event {
     PrintWriter out;
     String clientId;
     public boolean shouldDisconnect = false;
-    public Event(PrintWriter out) {
+    public void registerPrintWriter(PrintWriter out) {
         this.out = out;
     }
 
@@ -19,12 +19,12 @@ public class Event {
         this.clientId = clientId;
         roomUtil = new RoomUtil(clientId, out);
 
-        System.out.println("[" + this.clientId + " 연결됨]");
+        System.out.println(this.clientId + " 연결됨");
         out.println(JsonMessageUtil.getStatusMessage("connected"));
         out.flush();
     }
 
-    // roomInfo:{owner, players, title, readyPlayers}
+    // roomInfo:{title, players, readyPlayers, owner, customName, customUrl}
 
     // status: !exist{rooms, joinRoom}, success{left}, already{ready, unready, kick}, error{ready, unready, kick, setOwner}, kick{none}, connected{none}
     // rooms{rooms}
@@ -52,7 +52,7 @@ public class Event {
             case "ready": {
                 roomUtil.ready();
                 return;
-                // status: already, error
+                // status: already, error, !level
                 // roomInfo
             }
             case "unready": {
@@ -60,6 +60,11 @@ public class Event {
                 return;
                 // status: already, error
                 // roomInfo
+            }
+            case "start": {
+                roomUtil.start();
+                return;
+                // status: error, !player, !level, !ready, start
             }
         }
         JSONObject received = new JSONObject(inputMsg);
@@ -98,7 +103,7 @@ public class Event {
 
 
     public void onDisconnect() {
-        System.out.println("[" + clientId + " 연결 종료]");
+        System.out.println(clientId + " 연결 종료");
         roomUtil.leftFromRoom();
     }
 }

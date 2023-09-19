@@ -15,8 +15,8 @@ public class AdofaiServer {
         Socket socket;
         try {
             serverSocket = new ServerSocket(port);
+            System.out.println("서버 실행됨");
             while (true) {
-                System.out.println("[클라이언트 연결 대기 중]");
                 socket = serverSocket.accept();
 
                 ReceiveThread receiveThread = new ReceiveThread(socket);
@@ -28,10 +28,10 @@ public class AdofaiServer {
             if (serverSocket!=null) {
                 try {
                     serverSocket.close();
-                    System.out.println("[서버종료]");
+                    System.out.println("서버 종료");
                 } catch (IOException e) {
                     e.printStackTrace();
-                    System.out.println("[서버소켓통신에러]");
+                    System.out.println("서버 소켓 통신 오류");
                 }
             }
         }

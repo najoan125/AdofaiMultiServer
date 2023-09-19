@@ -47,6 +47,7 @@ public class RoomUtil {
         object.put("owner", room.getOwnerId());
         object.put("customName", room.getCustomLevelName());
         object.put("customUrl", room.getCustomLevelUrl());
+        object.put("start", room.isPlaying());
         return object;
     }
 
@@ -71,9 +72,8 @@ public class RoomUtil {
 
         Room createdRoom = new Room(title, password, clientId);
         createdRoom.putSocketOutput(clientId, out);
-
-        rooms.put(title, createdRoom);
-        joinedRoomTitles.put(clientId,title);
+        registerRoom(createdRoom);
+        registerUser(createdRoom);
 
         System.out.println(clientId+"님이 "+title+" 방을 만듦");
         out.println(getRoomInfoMessage(createdRoom));
@@ -96,27 +96,30 @@ public class RoomUtil {
             out.flush();
             return;
         }
-
-        room.addPlayer(clientId);
         room.putSocketOutput(clientId, out);
-
-        rooms.put(title, room);
-        joinedRoomTitles.put(clientId,title);
+        room.addPlayer(clientId);
+        registerUser(room);
+        registerRoom(room);
 
         System.out.println(clientId+"님이 "+title+" 방에 참가함");
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
     public void ready() {
-        if (!isPlayerJoined(clientId)){
+        if (!isUserJoined(clientId)){
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
         }
 
-        Room room = getPlayerRoom(clientId);
+        Room room = getUserRoom(clientId);
         if (isOwner(room, clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("already"));
+            out.flush();
+            return;
+        }
+        if (room.getCustomLevelName().isEmpty() || room.getCustomLevelUrl().isEmpty()) {
+            out.println(JsonMessageUtil.getStatusMessage("!level"));
             out.flush();
             return;
         }
@@ -126,32 +129,62 @@ public class RoomUtil {
             return;
         }
         room.addReadyPlayer(clientId);
+        registerRoom(room);
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
     public void unReady() {
-        if (!isPlayerJoined(clientId)){
+        if (!isUserJoined(clientId)){
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
         }
-        Room room = getPlayerRoom(clientId);
+        Room room = getUserRoom(clientId);
         if (!isPlayerReady(room, clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("already"));
             out.flush();
             return;
         }
         room.removeReadyPlayer(clientId);
+        registerRoom(room);
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
-    public void changeOwner(String clientId) {
-        if (!isPlayerJoined(this.clientId) || !isPlayerJoined(clientId)) {
+    public void start() {
+        if (!isUserJoined(clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
         }
-        Room room = getPlayerRoom(this.clientId);
+        Room room = getUserRoom(clientId);
+        if (room.getPlayers().isEmpty()) {
+            out.println(JsonMessageUtil.getStatusMessage("!player"));
+            out.flush();
+            return;
+        }
+        if (room.getCustomLevelName().isEmpty() || room.getCustomLevelUrl().isEmpty()) {
+            out.println(JsonMessageUtil.getStatusMessage("!level"));
+            out.flush();
+            return;
+        }
+
+        if (room.getPlayers().size() != room.getReadyPlayers().size()) {
+            out.println(JsonMessageUtil.getStatusMessage("!ready"));
+            out.flush();
+        } else {
+            room.setPlaying(true);
+            registerRoom(room);
+            sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("start"));
+        }
+    }
+
+    public void changeOwner(String clientId) {
+        if (!isUserJoined(this.clientId) || !isUserJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = getUserRoom(this.clientId);
         if (!isOwner(room, this.clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
@@ -165,20 +198,21 @@ public class RoomUtil {
             out.flush();
         }
         else {
+            registerRoom(room);
             sendToRoomPlayers(room, getRoomInfoMessage(room));
         }
     }
 
     public void leftFromRoom() {
-        if (!isPlayerJoined(clientId)) {
+        if (!isUserJoined(clientId)) {
             return;
         }
-        Room room = getPlayerRoom(clientId);
+        Room room = getUserRoom(clientId);
 
         if (isOwner(room, clientId)){
             if (room.getPlayers().isEmpty()) {
-                rooms.remove(room.getTitle());
-                joinedRoomTitles.remove(clientId);
+                unRegisterRoom(room);
+                unRegisterUser(clientId);
                 System.out.println(clientId + "님이 "+room.getTitle()+"에서 퇴장함");
                 return;
             }
@@ -186,37 +220,42 @@ public class RoomUtil {
         } else {
             room = removePlayer(room, clientId);
         }
-
+        unRegisterUser(clientId);
+        unRegisterRoom(Objects.requireNonNull(room));
         System.out.println(clientId + "님이 "+ Objects.requireNonNull(room).getTitle()+"에서 퇴장함");
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
     public void kick(String clientId) {
-        Room room = getPlayerRoom(this.clientId);
+        Room room = getUserRoom(this.clientId);
         if (!isOwner(room, this.clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
         }
-        if (!isPlayerJoined(room,clientId)) {
+        if (!isUserJoined(room,clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("already"));
             out.flush();
             return;
         }
         sendToRoomPlayer(room, clientId, JsonMessageUtil.getStatusMessage("kick"));
         room = removePlayer(room, clientId);
+        registerRoom(room);
+        unRegisterUser(clientId);
         sendToRoomPlayers(Objects.requireNonNull(room), getRoomInfoMessage(room));
     }
+
+    //helpful Methods
 
     private boolean isOwner(Room room, String clientId) {
         return room.getOwnerId().equals(clientId);
     }
 
-    private boolean isPlayerJoined(Room room, String clientId) {
-        return room.getPlayers().contains(clientId);
+    private boolean isUserJoined(Room room, String clientId) {
+        return room.getPlayers().contains(clientId) || room.getOwnerId().equals(clientId);
     }
 
-    private boolean isPlayerJoined(String clientId) {
+    private boolean isUserJoined(String clientId) {
         return joinedRoomTitles.containsKey(clientId);
     }
 
@@ -224,22 +263,18 @@ public class RoomUtil {
         return room.getReadyPlayers().contains(clientId);
     }
 
-    public Room getPlayerRoom(String clientId) {
+    public Room getUserRoom(String clientId) {
         return rooms.get(joinedRoomTitles.get(clientId));
     }
 
     private Room removePlayer(Room room, String clientId) {
-        if (!isPlayerJoined(room, clientId)) return null;
+        if (!isUserJoined(room, clientId)) return null;
 
         room.removeSocketOutput(clientId);
         room.removePlayer(clientId);
         if (isPlayerReady(room, clientId)) {
             room.removeReadyPlayer(clientId);
         }
-
-        rooms.put(room.getTitle(), room);
-        joinedRoomTitles.remove(clientId);
-
         return room;
     }
 
@@ -248,23 +283,36 @@ public class RoomUtil {
 
         room.removeSocketOutput(clientId);
         room = setOwner(room, room.getPlayers().get(0));
-        joinedRoomTitles.remove(clientId);
-
         return room;
     }
 
     public Room setOwner(Room room, String clientId) {
-        if (!isPlayerJoined(room, clientId)) return null;
+        if (!isUserJoined(room, clientId)) return null;
 
         room.setOwnerId(clientId);
         if (isPlayerReady(room, clientId)) {
             room.removeReadyPlayer(clientId);
         }
         room.removePlayer(clientId);
-
-        rooms.put(room.getTitle(), room);
         return room;
     }
+
+    private void registerRoom(Room room) {
+        rooms.put(room.getTitle(), room);
+    }
+
+    private void unRegisterRoom(Room room) {
+        rooms.remove(room.getTitle());
+    }
+
+    private void registerUser(Room room) {
+        joinedRoomTitles.put(clientId, room.getTitle());
+    }
+
+    private void unRegisterUser(String clientId) {
+        joinedRoomTitles.remove(clientId);
+    }
+
 
     public void sendToRoomPlayers(Room room, String message) {
         PrintWriter preOut = room.getSocketOutput().get(room.getOwnerId());

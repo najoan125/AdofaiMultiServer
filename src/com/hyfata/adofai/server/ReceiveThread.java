@@ -1,5 +1,7 @@
 package com.hyfata.adofai.server;
 
+import com.hyfata.adofai.server.event.Event;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,7 +32,8 @@ class ReceiveThread extends Thread {
 
     @Override
     public void run() {
-        Event event = new Event(out);
+        Event event = new Event();
+        event.registerPrintWriter(out);
         String clientId;
         try {
             clientId = in.readLine();

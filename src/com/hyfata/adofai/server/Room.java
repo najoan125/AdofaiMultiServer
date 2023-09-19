@@ -11,8 +11,8 @@ public class Room {
     private final ArrayList<String> readyPlayers = new ArrayList<>();
     private final HashMap<String, PrintWriter> socketOutput = new HashMap<>();
     private String ownerId;
-    private String customLevelName;
-    private String customLevelUrl;
+    private String customLevelName = "";
+    private String customLevelUrl = "";
     private boolean playing = false;
 
     public Room(String title, String password, String ownerId) {
