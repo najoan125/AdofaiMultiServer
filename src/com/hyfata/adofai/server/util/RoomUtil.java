@@ -221,7 +221,7 @@ public class RoomUtil {
             room = removePlayer(room, clientId);
         }
         unRegisterUser(clientId);
-        unRegisterRoom(Objects.requireNonNull(room));
+        registerRoom(Objects.requireNonNull(room));
         System.out.println(clientId + "님이 "+ Objects.requireNonNull(room).getTitle()+"에서 퇴장함");
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
@@ -229,6 +229,11 @@ public class RoomUtil {
     public void kick(String clientId) {
         Room room = getUserRoom(this.clientId);
         if (!isOwner(room, this.clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        if (this.clientId.equals(clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
