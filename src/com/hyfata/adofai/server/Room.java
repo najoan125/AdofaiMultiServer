@@ -81,6 +81,10 @@ public class Room {
         this.readyPlayers.remove(clientId);
     }
 
+    public void clearReadyPlayer() {
+        this.readyPlayers.clear();
+    }
+
     public HashMap<String, PrintWriter> getSocketOutput() {
         return socketOutput;
     }

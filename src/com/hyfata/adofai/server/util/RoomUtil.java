@@ -47,7 +47,6 @@ public class RoomUtil {
         object.put("owner", room.getOwnerId());
         object.put("customName", room.getCustomLevelName());
         object.put("customUrl", room.getCustomLevelUrl());
-        object.put("start", room.isPlaying());
         return object;
     }
 
@@ -90,7 +89,17 @@ public class RoomUtil {
             out.flush();
             return;
         }
+        if (isUserJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("already"));
+            out.flush();
+            return;
+        }
         Room room = rooms.get(title);
+        if (room.isPlaying()) {
+            out.println(JsonMessageUtil.getStatusMessage("playing"));
+            out.flush();
+            return;
+        }
         if (room.getPassword() != null && !room.getPassword().equals(password)) {
             out.println(JsonMessageUtil.getStatusMessage("!password"));
             out.flush();
@@ -150,6 +159,25 @@ public class RoomUtil {
         sendToRoomPlayers(room, getRoomInfoMessage(room));
     }
 
+    public void setLevel(String name, String url) {
+        if (!isUserJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = getUserRoom(clientId);
+        if (!room.getOwnerId().equals(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("!owner"));
+            out.flush();
+            return;
+        }
+        room.clearReadyPlayer();
+        room.setCustomLevelName(name);
+        room.setCustomLevelUrl(url);
+        registerRoom(room);
+        sendToRoomPlayers(room, getRoomInfoMessage(room));
+    }
+
     public void start() {
         if (!isUserJoined(clientId)) {
             out.println(JsonMessageUtil.getStatusMessage("error"));
@@ -173,6 +201,7 @@ public class RoomUtil {
             out.flush();
         } else {
             room.setPlaying(true);
+            room.clearReadyPlayer();
             registerRoom(room);
             sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("start"));
         }

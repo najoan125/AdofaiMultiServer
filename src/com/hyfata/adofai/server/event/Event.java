@@ -81,7 +81,7 @@ public class Event {
         //{"joinRoom":{"title":"testTitle"}}
         else if (received.has("joinRoom")) {
             roomUtil.joinRoom(received);
-            // status: !exist, !password
+            // status: !exist, !password, already, playing
             // roomInfo
         }
 
@@ -97,6 +97,16 @@ public class Event {
             String clientId = received.getString("setOwner");
             roomUtil.changeOwner(clientId);
             // status: error
+            // roomInfo
+        }
+
+        //{"setLevel":{"name":"test","url":"testurl"}}
+        else if (received.has("setLevel")) {
+            JSONObject object = received.getJSONObject("setLevel");
+            String name = object.getString("name");
+            String url = object.getString("url");
+            roomUtil.setLevel(name, url);
+            // status: error, !owner
             // roomInfo
         }
     }
