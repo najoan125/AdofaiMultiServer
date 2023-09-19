@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Room {
-    private String title;
+    private final String title;
     private String password;
     private final ArrayList<String> players = new ArrayList<>();
     private final ArrayList<String> readyPlayers = new ArrayList<>();
@@ -41,10 +41,6 @@ public class Room {
         return title;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public String getPassword() {
         return password;
     }
@@ -59,10 +55,6 @@ public class Room {
 
     public void addPlayer(String clientId) {
         this.players.add(clientId);
-    }
-
-    public void removePlayer(int index) {
-        this.players.remove(index);
     }
 
     public void removePlayer(String clientId) {
