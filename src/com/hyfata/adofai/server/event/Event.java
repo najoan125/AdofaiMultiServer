@@ -1,6 +1,7 @@
 package com.hyfata.adofai.server.event;
 
 import com.hyfata.adofai.server.util.JsonMessageUtil;
+import com.hyfata.adofai.server.util.PlayUtil;
 import com.hyfata.adofai.server.util.RoomUtil;
 import org.json.JSONObject;
 
@@ -8,6 +9,7 @@ import java.io.PrintWriter;
 
 public class Event {
     RoomUtil roomUtil;
+    PlayUtil playUtil;
     PrintWriter out;
     String clientId;
     public boolean shouldDisconnect = false;
@@ -18,6 +20,7 @@ public class Event {
     public void onConnect(String clientId) {
         this.clientId = clientId;
         roomUtil = new RoomUtil(clientId, out);
+        playUtil = new PlayUtil(clientId, out);
 
         System.out.println(this.clientId + " 연결됨");
         out.println(JsonMessageUtil.getStatusMessage("connected"));
@@ -65,6 +68,11 @@ public class Event {
                 roomUtil.start();
                 return;
                 // status: error, !player, !level, !ready, start
+            }
+            case "clientReady": {
+                playUtil.ready();
+                return;
+                // status: error, rstart
             }
         }
         JSONObject received = new JSONObject(inputMsg);

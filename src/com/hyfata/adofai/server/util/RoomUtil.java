@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class RoomUtil {
-    private static final HashMap<String,Room> rooms = new HashMap<>(); //title, Room
-    private static final HashMap<String,String> joinedRoomTitles = new HashMap<>(); //clientId, roomTitle
+    protected static final HashMap<String,Room> rooms = new HashMap<>(); //title, Room
+    protected static final HashMap<String,String> joinedRoomTitles = new HashMap<>(); //clientId, roomTitle
     private final PrintWriter out;
     private final String clientId;
 
@@ -281,23 +281,23 @@ public class RoomUtil {
 
     //helpful Methods
 
-    private boolean isOwner(Room room, String clientId) {
+    public boolean isOwner(Room room, String clientId) {
         return room.getOwnerId().equals(clientId);
     }
 
-    private boolean isUserJoined(Room room, String clientId) {
+    public static boolean isUserJoined(Room room, String clientId) {
         return room.getPlayers().contains(clientId) || room.getOwnerId().equals(clientId);
     }
 
-    private boolean isUserJoined(String clientId) {
+    public static boolean isUserJoined(String clientId) {
         return joinedRoomTitles.containsKey(clientId);
     }
 
-    private boolean isPlayerReady(Room room, String clientId) {
+    public boolean isPlayerReady(Room room, String clientId) {
         return room.getReadyPlayers().contains(clientId);
     }
 
-    public Room getUserRoom(String clientId) {
+    public static Room getUserRoom(String clientId) {
         return rooms.get(joinedRoomTitles.get(clientId));
     }
 
@@ -331,7 +331,7 @@ public class RoomUtil {
         return room;
     }
 
-    private void registerRoom(Room room) {
+    public static void registerRoom(Room room) {
         rooms.put(room.getTitle(), room);
     }
 
@@ -348,7 +348,7 @@ public class RoomUtil {
     }
 
 
-    public void sendToRoomPlayers(Room room, String message) {
+    public static void sendToRoomPlayers(Room room, String message) {
         PrintWriter preOut = room.getSocketOutput().get(room.getOwnerId());
         preOut.println(message);
         preOut.flush();
@@ -359,7 +359,7 @@ public class RoomUtil {
         }
     }
 
-    public void sendToRoomPlayer(Room room, String clientId, String message) {
+    public static void sendToRoomPlayer(Room room, String clientId, String message) {
         PrintWriter out = room.getSocketOutput().get(clientId);
         out.println(message);
         out.flush();
