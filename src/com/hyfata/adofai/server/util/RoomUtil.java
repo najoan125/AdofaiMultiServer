@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class RoomUtil {
-    protected static final HashMap<String,Room> rooms = new HashMap<>(); //title, Room
-    protected static final HashMap<String,String> joinedRoomTitles = new HashMap<>(); //clientId, roomTitle
+    private static final HashMap<String,Room> rooms = new HashMap<>(); //title, Room
+    private static final HashMap<String,String> joinedRoomTitles = new HashMap<>(); //clientId, roomTitle
     private final PrintWriter out;
     private final String clientId;
 
