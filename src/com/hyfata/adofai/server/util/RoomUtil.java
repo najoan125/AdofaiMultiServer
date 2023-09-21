@@ -79,6 +79,24 @@ public class RoomUtil {
         out.flush();
     }
 
+    public void changePassword(String password) {
+        if (!isUserJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = getUserRoom(clientId);
+        if (!isOwner(room, clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("!owner"));
+            out.flush();
+            return;
+        }
+        room.setPassword(password);
+        registerRoom(room);
+        out.println(JsonMessageUtil.getStatusMessage("success"));
+        out.flush();
+    }
+
     public void joinRoom(JSONObject received) {
         JSONObject object = received.getJSONObject("joinRoom");
         String title = object.getString("title");

@@ -85,6 +85,12 @@ public class Event {
             // roomInfo
         }
 
+        //{"setPassword":"cp"}
+        else if (received.has("setPassword")) {
+            roomUtil.changePassword(received.getString("setPassword"));
+            // status: error, !owner, success
+        }
+
         //{"joinRoom":{"title":"testTitle","password":"testPassword"}}
         //{"joinRoom":{"title":"testTitle"}}
         else if (received.has("joinRoom")) {
