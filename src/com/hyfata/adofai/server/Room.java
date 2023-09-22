@@ -1,8 +1,13 @@
 package com.hyfata.adofai.server;
 
+import com.hyfata.adofai.server.util.RoomUtil;
+import org.json.JSONObject;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class Room {
     private final String title;
@@ -10,6 +15,7 @@ public class Room {
     private final ArrayList<String> players = new ArrayList<>();
     private final ArrayList<String> readyPlayers = new ArrayList<>();
     private final HashMap<String, PrintWriter> socketOutput = new HashMap<>();
+    private final HashMap<String, String> accuracy = new HashMap<>();
     private String ownerId;
     private String customLevelName = "";
     private String customLevelUrl = "";
@@ -19,6 +25,30 @@ public class Room {
         this.title = title;
         this.password = password;
         this.ownerId = ownerId;
+    }
+
+    public void sendAccuracyEverySecond() {
+        Timer timer = new Timer();
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (isPlaying())
+                    sendAccuracyAllRoomUsers();
+                else
+                    timer.cancel();
+            }
+        };
+        timer.schedule(timerTask, 1000, 1000);
+    }
+
+    private void sendAccuracyAllRoomUsers() {
+        JSONObject result = new JSONObject();
+        JSONObject object = new JSONObject();
+        for (String client : accuracy.keySet()) {
+            object.put(client, getAccuracy(client));
+        }
+        result.put("Accuracy", object);
+        RoomUtil.sendToRoomPlayers(this, result.toString());
     }
 
     public boolean isPlaying() {
@@ -87,6 +117,14 @@ public class Room {
 
     public void removeSocketOutput(String clientId){
         socketOutput.remove(clientId);
+    }
+
+    public String getAccuracy(String clientId) {
+        return accuracy.get(clientId);
+    }
+
+    public void putAccuracy(String clientId, String accuracy) {
+        this.accuracy.put(clientId, accuracy);
     }
 
     public String getCustomLevelName() {

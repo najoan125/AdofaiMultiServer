@@ -155,6 +155,7 @@ public class RoomUtil {
             out.flush();
             return;
         }
+        if (room.isPlaying()) return;
         room.addReadyPlayer(clientId);
         registerRoom(room);
         sendToRoomPlayers(room, getRoomInfoMessage(room));
@@ -172,6 +173,7 @@ public class RoomUtil {
             out.flush();
             return;
         }
+        if (room.isPlaying()) return;
         room.removeReadyPlayer(clientId);
         registerRoom(room);
         sendToRoomPlayers(room, getRoomInfoMessage(room));
@@ -208,6 +210,11 @@ public class RoomUtil {
             out.flush();
             return;
         }
+        if (!isOwner(room, clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("!owner"));
+            out.flush();
+            return;
+        }
         if (room.getCustomLevelName().isEmpty() || room.getCustomLevelUrl().isEmpty()) {
             out.println(JsonMessageUtil.getStatusMessage("!level"));
             out.flush();
@@ -220,6 +227,10 @@ public class RoomUtil {
         } else {
             room.setPlaying(true);
             room.clearReadyPlayer();
+            room.putAccuracy(clientId, "0");
+            for (String client : room.getPlayers()) {
+                room.putAccuracy(client, "0");
+            }
             registerRoom(room);
             sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("start"));
         }
@@ -258,6 +269,7 @@ public class RoomUtil {
 
         if (isOwner(room, clientId)){
             if (room.getPlayers().isEmpty()) {
+                room.setPlaying(false);
                 unRegisterRoom(room);
                 unRegisterUser(clientId);
                 System.out.println(clientId + "님이 "+room.getTitle()+"에서 퇴장함");

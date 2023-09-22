@@ -3,6 +3,7 @@ package com.hyfata.adofai.server.event;
 import com.hyfata.adofai.server.util.JsonMessageUtil;
 import com.hyfata.adofai.server.util.PlayUtil;
 import com.hyfata.adofai.server.util.RoomUtil;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.PrintWriter;
@@ -75,7 +76,14 @@ public class Event {
                 // status: error, rstart
             }
         }
-        JSONObject received = new JSONObject(inputMsg);
+        JSONObject received;
+        try {
+            received = new JSONObject(inputMsg);
+        } catch (JSONException e) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
 
         //{"createRoom":{"title":"testTitle","password":"testPassword"}}
         //{"createRoom":{"title":"testTitle"}}
@@ -122,6 +130,12 @@ public class Event {
             roomUtil.setLevel(name, url);
             // status: error, !owner
             // roomInfo
+        }
+
+        //{"Accuracy":"99.56"}
+        else if (received.has("Accuracy")) {
+            playUtil.setAccuracy(received.getString("Accuracy"));
+            // status: error
         }
     }
 

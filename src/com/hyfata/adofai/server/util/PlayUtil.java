@@ -29,7 +29,24 @@ public class PlayUtil {
         if (room.getReadyPlayers().size() == room.getPlayers().size()+1) {
             room.clearReadyPlayer();
             RoomUtil.sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("rstart"));
+            room.sendAccuracyEverySecond();
         }
+        RoomUtil.registerRoom(room);
+    }
+
+    public void setAccuracy(String accuracy) {
+        if (!RoomUtil.isUserJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        Room room = RoomUtil.getUserRoom(clientId);
+        if (!room.isPlaying()) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        room.putAccuracy(clientId, accuracy);
         RoomUtil.registerRoom(room);
     }
 }
