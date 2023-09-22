@@ -339,6 +339,9 @@ public class RoomUtil {
         if (isPlayerReady(room, clientId)) {
             room.removeReadyPlayer(clientId);
         }
+        if (room.isPlaying()) {
+            room.removeAccuracy(clientId);
+        }
         return room;
     }
 
@@ -347,6 +350,9 @@ public class RoomUtil {
 
         room.removeSocketOutput(clientId);
         room = setOwner(room, room.getPlayers().get(0));
+        if (room.isPlaying()) {
+            room.removeAccuracy(clientId);
+        }
         return room;
     }
 

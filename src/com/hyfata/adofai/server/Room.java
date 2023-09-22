@@ -127,6 +127,10 @@ public class Room {
         this.accuracy.put(clientId, accuracy);
     }
 
+    public void removeAccuracy(String clientId) {
+        accuracy.remove(clientId);
+    }
+
     public String getCustomLevelName() {
         return customLevelName;
     }
