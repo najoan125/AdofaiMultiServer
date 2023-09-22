@@ -19,8 +19,9 @@ public class PlayUtil {
             out.flush();
             return;
         }
+
         Room room = RoomUtil.getUserRoom(clientId);
-        if (!room.isPlaying()) {
+        if (!room.isPlaying() || RoomUtil.isPlayerReady(room, clientId) || room.isStart()) {
             out.println(JsonMessageUtil.getStatusMessage("error"));
             out.flush();
             return;
@@ -28,6 +29,7 @@ public class PlayUtil {
         room.addReadyPlayer(clientId);
         if (room.getReadyPlayers().size() == room.getPlayers().size()+1) {
             room.clearReadyPlayer();
+            room.setStart(true);
             RoomUtil.sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("rstart"));
             room.sendAccuracyEverySecond();
         }
@@ -48,5 +50,38 @@ public class PlayUtil {
         }
         room.putAccuracy(clientId, accuracy);
         RoomUtil.registerRoom(room);
+    }
+
+    public void complete() {
+        if (!RoomUtil.isUserJoined(clientId)) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+
+        Room room = RoomUtil.getUserRoom(clientId);
+        if (room.getCompleteUsers().contains(clientId) || !room.isStart()) {
+            out.println(JsonMessageUtil.getStatusMessage("error"));
+            out.flush();
+            return;
+        }
+        room.addCompleteUser(clientId);
+        if (room.getCompleteUsers().size() == room.getPlayers().size()+1) {
+            room.clearCompleteUser();
+            room.setStart(false);
+            room.setPlaying(false);
+            RoomUtil.sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("complete"));
+        }
+        RoomUtil.registerRoom(room);
+    }
+
+    public static void left(Room room) {
+        if (room.isPlaying() && !room.isStart() && room.getReadyPlayers().size() == room.getPlayers().size()+1) {
+            room.clearReadyPlayer();
+            room.setStart(true);
+            RoomUtil.sendToRoomPlayers(room, JsonMessageUtil.getStatusMessage("rstart"));
+            room.sendAccuracyEverySecond();
+            RoomUtil.registerRoom(room);
+        }
     }
 }

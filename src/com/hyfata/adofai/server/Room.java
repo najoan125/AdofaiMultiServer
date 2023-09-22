@@ -14,12 +14,14 @@ public class Room {
     private String password;
     private final ArrayList<String> players = new ArrayList<>();
     private final ArrayList<String> readyPlayers = new ArrayList<>();
+    private final ArrayList<String> completeUsers = new ArrayList<>();
     private final HashMap<String, PrintWriter> socketOutput = new HashMap<>();
     private final HashMap<String, String> accuracy = new HashMap<>();
     private String ownerId;
     private String customLevelName = "";
     private String customLevelUrl = "";
     private boolean playing = false;
+    private boolean start = false;
 
     public Room(String title, String password, String ownerId) {
         this.title = title;
@@ -49,6 +51,14 @@ public class Room {
         }
         result.put("Accuracy", object);
         RoomUtil.sendToRoomPlayers(this, result.toString());
+    }
+
+    public boolean isStart() {
+        return start;
+    }
+
+    public void setStart(boolean start) {
+        this.start = start;
     }
 
     public boolean isPlaying() {
@@ -99,12 +109,25 @@ public class Room {
         this.readyPlayers.add(clientId);
     }
 
+
     public void removeReadyPlayer(String clientId) {
         this.readyPlayers.remove(clientId);
     }
 
     public void clearReadyPlayer() {
         this.readyPlayers.clear();
+    }
+
+    public ArrayList<String> getCompleteUsers() {
+        return completeUsers;
+    }
+
+    public void addCompleteUser(String clientId) {
+        completeUsers.add(clientId);
+    }
+
+    public void clearCompleteUser() {
+        completeUsers.clear();
     }
 
     public HashMap<String, PrintWriter> getSocketOutput() {

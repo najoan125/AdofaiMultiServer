@@ -75,6 +75,11 @@ public class Event {
                 return;
                 // status: error, rstart
             }
+            case "complete": {
+                playUtil.complete();
+                return;
+                // status: error, complete
+            }
         }
         JSONObject received;
         try {

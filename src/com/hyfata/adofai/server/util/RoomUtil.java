@@ -283,6 +283,7 @@ public class RoomUtil {
         registerRoom(Objects.requireNonNull(room));
         System.out.println(clientId + "님이 "+ Objects.requireNonNull(room).getTitle()+"에서 퇴장함");
         sendToRoomPlayers(room, getRoomInfoMessage(room));
+        PlayUtil.left(room);
     }
 
     public void kick(String clientId) {
@@ -323,7 +324,7 @@ public class RoomUtil {
         return joinedRoomTitles.containsKey(clientId);
     }
 
-    public boolean isPlayerReady(Room room, String clientId) {
+    public static boolean isPlayerReady(Room room, String clientId) {
         return room.getReadyPlayers().contains(clientId);
     }
 
