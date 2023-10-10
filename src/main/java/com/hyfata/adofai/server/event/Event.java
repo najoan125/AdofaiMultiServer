@@ -14,6 +14,7 @@ public class Event {
     PlayUtil playUtil;
     PrintWriter out;
     String clientId;
+    String nickName;
     public boolean shouldDisconnect = false;
     public void registerPrintWriter(PrintWriter out) {
         this.out = out;
@@ -21,7 +22,7 @@ public class Event {
 
     public void onConnect(String clientId) {
         this.clientId = clientId;
-        String nickName = UserDB.getUserNickName(clientId);
+        nickName = UserDB.getUserNickName(clientId);
         System.out.println(this.clientId + " 연결됨");
         if (nickName == null) {
             out.println(JsonMessageUtil.getStatusMessage("!nickname"));
@@ -43,6 +44,31 @@ public class Event {
     // rooms{rooms}
     // roomInfo{ready, unready, createRoom, joinRoom, kick, setOwner, none}
     public void onReceive(String inputMsg) {
+        if (nickName == null) {
+            try {
+                JSONObject received = new JSONObject(inputMsg);
+                //{"setNick":"changed"}
+                if (received.has("setNick")) {
+                    nickName = received.getString("setNick");
+                    roomUtil = new RoomUtil(nickName, out);
+                    playUtil = new PlayUtil(nickName, out);
+                    if (UserDB.insertNickName(clientId,nickName) == 1) {
+                        out.println(JsonMessageUtil.getJsonMessage("nickname", nickName));
+                    } else {
+                        out.println(JsonMessageUtil.getStatusMessage("error"));
+                    }
+                    out.flush();
+                    return;
+                }
+            } catch (JSONException e) {
+                out.println(JsonMessageUtil.getStatusMessage("error"));
+                out.flush();
+                return;
+            }
+            out.println(JsonMessageUtil.getStatusMessage("!nickname"));
+            out.flush();
+            return;
+        }
         switch (inputMsg) {
             case "quit": {
                 shouldDisconnect = true;
