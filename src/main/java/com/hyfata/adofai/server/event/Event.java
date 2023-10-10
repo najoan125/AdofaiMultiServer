@@ -3,6 +3,7 @@ package com.hyfata.adofai.server.event;
 import com.hyfata.adofai.server.util.JsonMessageUtil;
 import com.hyfata.adofai.server.util.PlayUtil;
 import com.hyfata.adofai.server.util.RoomUtil;
+import com.hyfata.adofai.server.util.mysql.UserDB;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -20,11 +21,19 @@ public class Event {
 
     public void onConnect(String clientId) {
         this.clientId = clientId;
-        roomUtil = new RoomUtil(clientId, out);
-        playUtil = new PlayUtil(clientId, out);
+        String nickName = UserDB.getUserNickName(clientId);
+        if (nickName == null) {
+            out.println(JsonMessageUtil.getStatusMessage("!nickname"));
+            return;
+        }
+
+        roomUtil = new RoomUtil(nickName, out);
+        playUtil = new PlayUtil(nickName, out);
 
         System.out.println(this.clientId + " 연결됨");
         out.println(JsonMessageUtil.getStatusMessage("connected"));
+        out.flush();
+        out.println(JsonMessageUtil.getJsonMessage("nickname",nickName));
         out.flush();
     }
 
