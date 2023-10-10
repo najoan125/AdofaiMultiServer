@@ -22,17 +22,17 @@ public class Event {
     public void onConnect(String clientId) {
         this.clientId = clientId;
         String nickName = UserDB.getUserNickName(clientId);
+        System.out.println(this.clientId + " 연결됨");
         if (nickName == null) {
             out.println(JsonMessageUtil.getStatusMessage("!nickname"));
+            out.flush();
             return;
         }
 
         roomUtil = new RoomUtil(nickName, out);
         playUtil = new PlayUtil(nickName, out);
 
-        System.out.println(this.clientId + " 연결됨");
-        out.println(JsonMessageUtil.getStatusMessage("connected"));
-        out.flush();
+
         out.println(JsonMessageUtil.getJsonMessage("nickname",nickName));
         out.flush();
     }
