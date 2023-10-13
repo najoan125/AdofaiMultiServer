@@ -172,48 +172,64 @@ public class Event {
         switch (inputMsg) {
             case "quit": {
                 shouldDisconnect = true;
-                return;
+                break;
             }
             case "left": {
                 roomUtil.leftFromRoom();
                 out.println(JsonMessageUtil.getStatusMessage("success"));
                 out.flush();
-                return;
+                break;
                 // status: success
             }
             case "rooms": {
                 out.println(roomUtil.getAllRoomsInfoMessage());
                 out.flush();
-                return;
+                break;
                 // status: !exist
                 // rooms:{title:{password, players, playing}}
             }
             case "ready": {
                 roomUtil.ready();
-                return;
+                break;
                 // status: already, error, !level
                 // roomInfo
             }
             case "unready": {
                 roomUtil.unReady();
-                return;
+                break;
                 // status: already, error
                 // roomInfo
             }
             case "start": {
                 roomUtil.start();
-                return;
+                break;
                 // status: error, !player, !level, !ready, start
             }
             case "clientReady": {
                 playUtil.ready();
-                return;
+                break;
                 // status: error, rstart
             }
             case "complete": {
                 playUtil.complete();
-                return;
+                break;
                 // status: error, complete
+            }
+            case "deleteUser": {
+                if (RoomUtil.isUserJoined(nickName)) {
+                    out.println(JsonMessageUtil.getStatusMessage("cantDelete"));
+                }
+                else if (UserDB.deleteUser(clientId) == 1) {
+                    roomUtil = null;
+                    playUtil = null;
+                    nickName = null;
+                    out.println(JsonMessageUtil.getStatusMessage("success"));
+                }
+                else {
+                    out.println(JsonMessageUtil.getStatusMessage("error"));
+                }
+                out.flush();
+                break;
             }
             default: {
                 out.println(JsonMessageUtil.getStatusMessage("error"));

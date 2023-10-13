@@ -50,4 +50,15 @@ public class UserDB {
         ResultSet rs = ps.executeQuery();
         return rs.next();
     }
+
+    public static int deleteUser(String clientId) {
+        String SQL = "delete from user where steamid = ?";
+        try {
+            PreparedStatement ps = conn.prepareStatement(SQL);
+            ps.setString(1,clientId);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            return -1;
+        }
+    }
 }
